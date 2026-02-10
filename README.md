@@ -1,4 +1,4 @@
-# Slayer 7
+# Slayer 7 - Application Layer Attack Suite 
 
 
 
