@@ -1296,12 +1296,15 @@ func Worker(targetURL string, method string, clients []*http.Client, stop <-chan
 			err = httpRudy(targetURL, client, stop)
 		case "apiflood":
 			err = httpAPIFlood(targetURL, client)
-		case "rapidreset":
+		case "rapidreset", "rapidrest":
 			// Raw HTTP/2 — bypasses http.Client entirely
 			err = httpRapidReset(targetURL, stop)
 		case "wsflood":
 			// WebSocket connection + message flood
 			err = wsFlood(targetURL, stop)
+		default:
+			fmt.Fprintf(os.Stderr, "\n  unknown method: %s\n", method)
+			os.Exit(1)
 		}
 
 		if err != nil {
@@ -1344,6 +1347,17 @@ func main() {
 	workers := *workerCount
 	duration := *dur
 	proxyFile := *pFile
+
+	// Validate method before doing anything
+	validMethods := map[string]bool{
+		"httpget": true, "httppost": true, "rudy": true,
+		"apiflood": true, "rapidreset": true, "rapidrest": true, "wsflood": true,
+	}
+	if !validMethods[strings.ToLower(*method)] {
+		fmt.Fprintf(os.Stderr, "\n  \033[31m✗\033[0m Unknown method: %s\n", *method)
+		fmt.Fprintf(os.Stderr, "  Valid methods: httpget | httppost | rudy | apiflood | rapidreset | wsflood\n\n")
+		os.Exit(1)
+	}
 
 	// ANSI color codes
 	const (
