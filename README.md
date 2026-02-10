@@ -1,68 +1,137 @@
 # Slayer 7
 
-Multi-vector Layer 7 DDoS toolkit built in Go. Routes all traffic through rotating proxies, pools connections for maximum throughput, and ships 6 attack methods — from raw volumetric floods to protocol-level exploits like HTTP/2 Rapid Reset. One binary, no config files, just flags and fire.
 
-- 6 attack methods — GET/POST floods, RUDY slow POST, API/JSON flood, HTTP/2 Rapid Reset, WebSocket flood
-- Rotating proxy support — HTTP CONNECT with auth, auto-dedup, raw CONNECT tunneling for h2/ws
-- Connection pooling — 32 transports per unique proxy, keep-alive, zero-copy drain
-- Lock-free atomic counters — live RPS ticker every 2s
-- Randomized fingerprints — varied payloads, content types, headers, endpoints per request
-- Auto-reconnect — dead connections rotate back instantly
-- Single binary — `go build -o slayer .` and go
 
-## Quick Start
+A high-performance, multi-method HTTP stress testing tool written in Go. Supports multiple attack vectors, proxy rotation, and concurrent worker pools.
+
+> **⚠️ Disclaimer:** This tool is intended for authorized security testing and research purposes only. Only use against systems you own or have explicit written permission to test. Unauthorized use is illegal.
+
+---
+
+## Features
+
+- **6 Attack Methods** — HTTP GET, HTTP POST, HTTP/2 Rapid Reset, WebSocket Flood, RUDY (slow POST), API JSON Flood, 
+- **Proxy Support** — Load proxies from file with automatic deduplication and connection pooling (32 clients per proxy)
+- **Direct Mode** — Run without proxies for local/authorized testing
+- **Massive Concurrency** — Default 2048 workers with configurable count
+- **Randomized Fingerprints** — 300+ user agents spanning Chrome, Firefox, Edge, Safari, mobile browsers, and more
+- **Dynamic Payloads** — Randomized form data, JSON bodies, GraphQL queries, and binary blobs per request
+- **Live Statistics** — Real-time RPS, sent count, and error tracking with colored terminal output
+- **HTTP/2 Rapid Reset** — Raw framer implementation of CVE-2023-44487 with HPACK encoding and batched frame writes
+- **RUDY (R U Dead Yet)** — Slow POST that drips bytes at 0.5–2.5s intervals to hold connections open indefinitely
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Go 1.21+
+
+### Build
 
 ```bash
-  ______   __                                                 ______
- /      \ |  \                                               /      \
-|  $$$$$$\| $$  ______   __    __   ______    ______        |  $$$$$$\ __     __  _______
-| $$___\$$| $$ |      \ |  \  |  \ /      \  /      \       | $$___\$$|  \   /  \|       \
- \$$    \ | $$  \$$$$$$\| $$  | $$|  $$$$$$\|  $$$$$$\       \$$    \  \$$\ /  $$| $$$$$$$\
- _\$$$$$$\| $$ /      $$| $$  | $$| $$    $$| $$   \$$       _\$$$$$$\  \$$\  $$ | $$  | $$
-|  \__| $$| $$|  $$$$$$$| $$__/ $$| $$$$$$$$| $$            |  \__| $$   \$$ $$  | $$  | $$
- \$$    $$| $$ \$$    $$ \$$    $$ \$$     \| $$             \$$    $$    \$$$   | $$  | $$
-  \$$$$$$  \$$  \$$$$$$$ _\$$$$$$$  \$$$$$$$ \$$              \$$$$$$      \$     \$$   \$$
-                        |  \__| $$
-                         \$$    $$
-                          \$$$$$$
+go mod init slayer
+go mod tidy
 go build -o slayer .
-
-./slayer -t https://target.com -m httpget -w 4000 -d 30 -p proxies.txt
 ```
 
-## Flags
+### Dependencies
 
 ```
--t  target URL         (required)
--m  attack method      (default: httpget)
--w  worker goroutines  (default: 2048)
--d  duration seconds   (default: 30)
--p  proxy file         (default: proxies.txt)
+github.com/gorilla/websocket
+golang.org/x/net/http2
+golang.org/x/net/http2/hpack
 ```
 
-## Methods
+---
 
-| Method | Type | What It Does |
-|--------|------|-------------|
-| `httpget` | Volumetric | GET flood — tight loop, keep-alive, drain & discard |
-| `httppost` | Volumetric | POST flood — 5 randomized form templates + JSON variants |
-| `rudy` | Slowloris | R.U.D.Y. — declares 1–51 MB body, drips 1 byte/0.5–2.5s |
-| `apiflood` | Application | REST/GraphQL — 6 payload generators, random endpoints & tokens |
-| `rapidreset` | Protocol | CVE-2023-44487 — raw h2 HEADERS→RST_STREAM loop, 100-frame batches |
-| `wsflood` | Persistent | WebSocket — mixed text/binary/ping frames, auto-reconnect |
-
-
-## Proxy Format
+## Usage
 
 ```
-http://user:pass@gateway:port
+slayer -t <url> [-m method] [-w workers] [-d duration] [-p proxyfile]
 ```
 
-One per line. HTTP CONNECT with basic auth. Raw methods (`rapidreset`, `wsflood`) handle CONNECT tunneling and `Proxy-Authorization` internally.
+### Flags
 
-## Dependencies
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-t` | *(required)* | Target URL (e.g. `https://example.com`) |
+| `-m` | `httpget` | Attack method |
+| `-w` | `2048` | Number of concurrent workers |
+| `-d` | `30` | Duration in seconds |
+| `-p` | *(none)* | Path to proxy file (one per line, omit for direct mode) |
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `httpget` | Standard HTTP GET flood |
+| `httppost` | HTTP POST with randomized form/JSON payloads |
+| `rudy` | Slow POST — declares huge Content-Length, drips 1 byte at a time |
+| `apiflood` | JSON API flood with randomized endpoints and complex nested payloads |
+| `rapidreset` | HTTP/2 Rapid Reset (CVE-2023-44487) — sends HEADERS+RST_STREAM in batches |
+| `wsflood` | WebSocket connection flood with mixed text/binary/ping messages |
+
+### Examples
+
+```bash
+# Basic GET flood for 60 seconds
+./slayer -t https://target.com -m httpget -d 60
+
+# POST flood through proxies with 4096 workers
+./slayer -t https://target.com -m httppost -w 4096 -d 120 -p proxies.txt
+
+# RUDY slow POST attack
+./slayer -t https://target.com -m rudy -w 500 -d 300
+
+# HTTP/2 Rapid Reset through proxies
+./slayer -t https://target.com -m rapidreset -w 1024 -p proxies.txt
+
+# WebSocket flood
+./slayer -t https://target.com -m wsflood -w 2048 -d 60
+
+# API JSON flood
+./slayer -t https://target.com -m apiflood -w 2048 -d 90
+```
+
+---
+
+## Proxy File Format
+
+One proxy URL per line. Supports HTTP/HTTPS proxies with optional authentication:
 
 ```
-golang.org/x/net/http2    — raw h2 framing + hpack
-github.com/gorilla/websocket — ws dial + framing
+http://proxy1.example.com:8080
+http://user:pass@proxy2.example.com:3128
+socks5://proxy3.example.com:1080
 ```
+
+---
+
+## Architecture
+
+### Connection Pooling
+
+- **Proxied mode:** 32 `http.Client` instances per unique proxy, each with independent transport connection pools (up to 250 connections per host)
+- **Direct mode:** Pool of 32 direct clients
+- Workers randomly select a client from the pool on each iteration
+
+### Payload Generation
+
+POST and API flood methods generate randomized payloads on every request including login forms, search queries, feedback forms, multi-param spam, base64 blobs, bulk JSON inserts, deeply nested objects, and GraphQL mutations. Content type alternates between `application/x-www-form-urlencoded` and `application/json`.
+
+### HTTP/2 Rapid Reset
+
+Opens a raw TLS connection with ALPN `h2` negotiation, sends the HTTP/2 client preface, then continuously writes batches of 100 HEADERS + RST_STREAM frame pairs using a buffered framer. Supports CONNECT tunneling through proxies. A background goroutine consumes server frames to prevent connection stalls.
+
+### RUDY
+
+Declares a Content-Length of 1–51 MB, then sends the body 1 byte at a time with 0.5–2.5 second delays between each byte. The payload loops infinitely to keep the connection open until the stop signal.
+
+---
+
+
+## License
+
+For authorized testing only. Use responsibly.
