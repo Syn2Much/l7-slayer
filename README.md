@@ -12,9 +12,8 @@ Supports both HTTP and HTTPS, multiple attack vectors, proxy rotation, and massi
 > Unauthorized use is illegal.
 
 ---
-## ✨ Features
 
-* **6 Attack Methods**
+## **6 Attack Methods**
   * **HTTP GET** – Standard GET requests with configurable parameters
   * **HTTP POST** – POST requests with form data or JSON payloads
   * **HTTP/2 Rapid Reset** – Raw framer implementation of CVE-2023-44487 with HPACK encoding and batched frame writes
@@ -22,28 +21,6 @@ Supports both HTTP and HTTPS, multiple attack vectors, proxy rotation, and massi
   * **RUDY (Slow POST)** – Slow POST technique that drips bytes at 0.5–2.5 second intervals to hold connections open
   * **API JSON Flood** – JSON payload flood targeting REST API endpoints
 
-* **Proxy Support**
-  * Load proxy lists from file with automatic format detection
-  * Deduplication and validation of proxy addresses
-  * Connection pooling with 32 concurrent clients per proxy
-  * Automatic proxy rotation and failover
-
-* **Massive Concurrency**
-  * Default configuration: **2048 concurrent workers**
-  * Fully adjustable thread/worker count
-  * Non-blocking I/O architecture
-
-* **Randomized Fingerprints**
-  * Database of 300+ User-Agents rotated per request
-  * Chrome, Firefox, Edge, Safari, and mobile browser variants
-  * Randomized header values and request patterns
-
-* **Live Statistics Dashboard**
-  * Real-time requests-per-second (RPS) monitoring
-  * Total sent request counter
-  * Error rate tracking by type
-  * Colored terminal output with progress indicators
-  * Connection status and success rate monitoring
 
 ## 📦 Installation
 
@@ -58,15 +35,6 @@ go mod init slayer
 go mod tidy
 go build -o slayer .
 ```
-
-### Dependencies
-
-```
-github.com/gorilla/websocket
-golang.org/x/net/http2
-golang.org/x/net/http2/hpack
-```
-
 ---
 
 ## 🚀 Usage
@@ -99,6 +67,13 @@ slayer -t <url> [-m method] [-w workers] [-d duration] [-p proxyfile]
 | `wsflood`    | WebSocket connection flood with mixed traffic                |
 
 ---
+### Dependencies
+
+```
+github.com/gorilla/websocket
+golang.org/x/net/http2
+golang.org/x/net/http2/hpack
+```
 
 ## 📚 Examples
 
