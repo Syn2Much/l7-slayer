@@ -15,7 +15,7 @@ Supports both HTTP and HTTPS, multiple attack vectors, proxy rotation, and massi
 > HTTP/2 Rapid-Reset Exploit 1M+ RPS
 ![Animation](https://github.com/user-attachments/assets/f33cb033-dfb6-4101-bdb5-507f2e5ad83e)
 
-## 🧪 Methods
+##  Methods
 
 | Method       | Description                                                  |
 | ------------ | ------------------------------------------------------------ |
@@ -26,7 +26,7 @@ Supports both HTTP and HTTPS, multiple attack vectors, proxy rotation, and massi
 | `rapidreset` | HTTP/2 Rapid Reset (CVE-2023-44487)                          |
 | `wsflood`    | WebSocket connection flood with mixed traffic                |
 
-## 📦 Installation
+##  Installation
 
 ### Prerequisites
 
@@ -42,7 +42,7 @@ go build -o slayer .
 ```
 ---
 
-## 🚀 Usage
+##  Usage
 
 ```bash
 slayer -t <url> [-m method] [-w workers] [-d duration] [-p proxyfile]
@@ -70,7 +70,7 @@ golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 ```
 
-## 📚 Examples
+##  Examples
 
 ```bash
 # Basic GET flood (60s)
@@ -94,7 +94,7 @@ golang.org/x/net/http2/hpack
 
 ---
 
-## 🌐 Proxy File Format
+##  Proxy File Format
 
 One proxy per line.
 Supports HTTP / HTTPS / SOCKS5 with optional authentication.
@@ -107,7 +107,7 @@ socks5://proxy3.example.com:1080
 
 
 
-## 📜 License
+##  License
 
 **For authorized testing only.**
 Use responsibly.
